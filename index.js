@@ -135,7 +135,7 @@ function recursivelyIterateProperties(types, jsonObject) {
             delete jsonObject[key]
         })
 
-        jsonObject["$ref"] = "file://build/schema/" + typeName + "#"
+        jsonObject["$ref"] = program.prefix + typeName + "#"
     }
 }
 
