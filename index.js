@@ -70,6 +70,8 @@ function parseRamlFile(ramlFile) {
 }
 
 function parseRamlToJson(typeDefinitions) {
+    var types = _.map(typeDefinitions, function(typeDefinition) { return typeDefinition.name() })
+
     typeDefinitions.forEach(function (typeDefinition, idx) {
         // Debug type definition
         var definition = typeDefinition.toJSON({serializeMetadata: false}),
@@ -78,13 +80,13 @@ function parseRamlToJson(typeDefinitions) {
 
         definition[name]['$schema'] = "http://json-schema.org/draft-04/schema#";
         definition[name]['id'] = (program.prefix || "") + name;
-        recursivelyIterateProperties(definition[name]);
+        recursivelyIterateProperties(types, definition[name]);
 
         saveJsonFile(outputDir + '/' + name + '.json', definition[name]);
     })
 }
 
-function recursivelyIterateProperties(jsonObject) {
+function recursivelyIterateProperties(types, jsonObject) {
     // // Convert type from array to string value
     if (_.isArray(_.result(jsonObject,'type'))) {
         jsonObject.type = jsonObject.type[0];
@@ -114,16 +116,26 @@ function recursivelyIterateProperties(jsonObject) {
     jsonObject.repeat = undefined;
     jsonObject.structuredExample = undefined;
 
+
     if (jsonObject.type === 'object' && _.isObject(jsonObject.properties)) {
         // Find all required properties
         jsonObject.required = _.map(_.filter(jsonObject.properties, 'required'), 'name');
 
         // Parse children properties
         _.forEach(jsonObject.properties, function (propObject, propKey) {
-            recursivelyIterateProperties(propObject)
+            recursivelyIterateProperties(types, propObject)
         })
     } else {
         jsonObject.required = undefined;
+    }
+
+    var typeName = jsonObject.type
+    if (_.indexOf(types, typeName) >= 0) {
+        _.forEach(_.keys(jsonObject), function(key) {
+            delete jsonObject[key]
+        })
+
+        jsonObject["$ref"] = "file://build/schema/" + typeName + "#"
     }
 }
 
