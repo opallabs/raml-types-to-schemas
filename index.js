@@ -71,7 +71,7 @@ function parseRamlFile(ramlFile) {
 
 function parseRamlToJson(typeDefinitions) {
     var types = _.map(typeDefinitions, function(typeDefinition) { return typeDefinition.name() })
-    console.log(types)
+
     typeDefinitions.forEach(function (typeDefinition, idx) {
         // Debug type definition
         var definition = typeDefinition.toJSON({serializeMetadata: false}),
